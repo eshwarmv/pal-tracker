@@ -15,10 +15,5 @@ applications:
     env:
       WELCOME_MESSAGE: Hello from the review environment
       JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 11.+ } }'
-      CF_API_URL: https://api.sys.evans.pal.pivotal.io
-      CF_ORG_NAME: emuthyam.ford.com
-      CF_SPACE: sandbox
-      CF_USERNAME: emuthyam@ford.com
-      CF_PASSWORD: k65hfcff
     services:
       - tracker-database
