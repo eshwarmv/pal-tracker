@@ -2,8 +2,13 @@ package test.pivotal.pal.trackerapi;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.mysql.cj.jdbc.MysqlDataSource;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.pivotal.pal.tracker.PalTrackerApplication;
 import io.pivotal.pal.tracker.TimeEntry;
+import io.pivotal.pal.tracker.TimeEntryController;
+import io.pivotal.pal.tracker.TimeEntryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +26,8 @@ import java.util.TimeZone;
 
 import static com.jayway.jsonpath.JsonPath.parse;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(classes = PalTrackerApplication.class, webEnvironment = RANDOM_PORT)
@@ -35,13 +42,18 @@ public class TimeEntryApiTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        MysqlDataSource dataSource = new MysqlDataSource();
-        dataSource.setUrl(System.getenv("SPRING_DATASOURCE_URL"));
+        TimeEntryRepository timeEntryRepository = mock(TimeEntryRepository.class);
+        MeterRegistry meterRegistry = mock(MeterRegistry.class);
 
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-        jdbcTemplate.execute("TRUNCATE time_entries");
+        doReturn(mock(DistributionSummary.class))
+                .when(meterRegistry)
+                .summary("timeEntry.summary");
 
-        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        doReturn(mock(Counter.class))
+                .when(meterRegistry)
+                .counter("timeEntry.actionCounter");
+
+        TimeEntryController controller = new TimeEntryController(timeEntryRepository, meterRegistry);
     }
 
     @Test
